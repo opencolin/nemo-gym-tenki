@@ -1,0 +1,19 @@
+.gitignore
+  s_97f8cf2a895c6a::t_6e9c713cc9190d 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "f86b8dee0c95c26bf836bf67cd1d123f6ad9ce66",
+  "prompts": {},
+  "sessions": {
+    "s_97f8cf2a895c6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f46e670-3851-4b1c-8791-0dfcf3580094",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "opencolin <colin@lowenberg.com>"
+    }
+  }
+}
