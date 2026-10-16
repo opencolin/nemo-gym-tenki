@@ -4,7 +4,7 @@ Proves the provider against a real Tenki account through NeMo Gym's own protocol
 create -> exec (assert 42) -> status -> upload/download roundtrip -> the
 ConnectableProvider serialize/connect path -> close. Every sandbox is terminated.
 
-Token/project: env (CI) or ~/.config/tenki/config.yaml (local `tenki login`).
+Token/workspace: env (CI) or ~/.config/tenki/config.yaml (local `tenki login`).
 Requires NeMo Gym (`nemo_gym`) installed in the environment.
 
     python verify.py
@@ -52,12 +52,9 @@ def connection_config() -> dict:
         print("FAIL: no token. Set TENKI_API_KEY (tk_...), or run `tenki login`.")
         sys.exit(1)
     conn = {"auth_token": token}
-    # Optional: only pass a project if one is provided; otherwise the SDK resolves
-    # the single project on the key (the CI path).
-    project = os.environ.get("TENKI_PROJECT_ID") or cfg("current_project_id")
+    # Optional: pass a workspace only if one is set; otherwise the SDK uses the
+    # key's workspace (the CI path).
     workspace = os.environ.get("TENKI_WORKSPACE_ID") or cfg("current_workspace_id")
-    if project:
-        conn["project_id"] = project
     if workspace:
         conn["workspace_id"] = workspace
     return conn

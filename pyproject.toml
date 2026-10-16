@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nemo-gym-tenki"
-version = "0.1.0"
+version = "0.2.0"
 description = "Tenki (Firecracker microVM) sandbox provider for NVIDIA NeMo Gym"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 authors = [{ name = "Luxor AI / Tenki DevRel" }]
 keywords = ["nemo-gym", "tenki", "sandbox", "reinforcement-learning", "microvm"]
 dependencies = [
-  "tenki-sandbox>=0.4",
+  "tenki>=1.4.1,<2",
 ]
 # NOTE: NeMo Gym itself (the `nemo_gym` package) is the host runtime and must be
 # installed in the same environment -- it provides the sandbox-provider protocol
