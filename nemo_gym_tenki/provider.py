@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Luxor AI. Apache-2.0.
 """Tenki sandbox provider for NVIDIA NeMo Gym.
 
-Runs each NeMo Gym sandbox in a Tenki Firecracker microVM: ~2s boot, per-second
+Runs each NeMo Gym sandbox in a Tenki Firecracker microVM: boots in seconds, per-second
 billing, disposable, kernel-isolated. It implements the ``SandboxProvider``
 protocol (``nemo_gym.sandbox.providers.base``) plus the optional
 ``ConnectableProvider`` capability -- Tenki sandboxes are reachable by id and
@@ -13,10 +13,10 @@ Select it from a NeMo Gym agent config::
 
     sandbox_provider:
       tenki:
-        connection: {}            # auth from TENKI_API_KEY; project auto-resolved
+        connection: {}            # auth from TENKI_API_KEY; workspace inferred from the key
         create: {cpu_cores: 2, memory_mb: 4096}
 
-The Tenki SDK (``tenki-sandbox``) is synchronous, so every SDK call runs in a
+The Tenki SDK (``tenki``, imported as ``tenki_sandbox``) is synchronous, so every SDK call runs in a
 worker thread via ``asyncio.to_thread`` to satisfy the async provider protocol.
 
 Scope: Tenki runs **CPU** microVMs. It does not attach GPUs -- a spec that
@@ -62,13 +62,12 @@ class TenkiConnectionConfig:
 
     All fields are optional. When ``auth_token`` is unset the SDK reads
     ``TENKI_API_KEY`` / ``TENKI_AUTH_TOKEN`` from the environment (a ``tk_`` API
-    key is preferred). When ``project_id`` is unset the SDK resolves the single
-    project on the key -- so this runs in CI with only a key set.
+    key is preferred). When ``workspace_id`` is unset the SDK uses the workspace
+    the key belongs to -- so this runs in CI with only a key set.
     """
 
     auth_token: str | None = None
     base_url: str | None = None
-    project_id: str | None = None
     workspace_id: str | None = None
     request_timeout_s: float | None = None
 
@@ -82,7 +81,7 @@ class TenkiCreateConfig:
     disk_size_gb: int = 10
     image: str | None = None  # a Tenki registry ref; None -> platform default base image
     ready_timeout_s: float = 180.0
-    allow_outbound: bool = True  # egress is opt-in on Tenki; default it on for agents that fetch/install
+    allow_outbound: bool = True  # agents that pip install / git clone need egress; set False to lock a rollout down
     idle_timeout_minutes: int | None = None
     max_duration_s: float | None = None  # hard VM lifetime; None -> platform default
     sticky: bool = False
@@ -129,7 +128,7 @@ def _to_status(state: str | None) -> SandboxStatus:
 
 
 class TenkiProvider:
-    """SandboxProvider backed by the Tenki (``tenki-sandbox``) SDK."""
+    """SandboxProvider backed by the Tenki SDK (``tenki``)."""
 
     name = "tenki"
 
@@ -195,8 +194,6 @@ class TenkiProvider:
             wait=True,
             timeout=timeout,
         )
-        if self._connection.project_id:
-            kwargs["project_id"] = self._connection.project_id
         if self._connection.workspace_id:
             kwargs["workspace_id"] = self._connection.workspace_id
         image = spec.image or self._create.image
