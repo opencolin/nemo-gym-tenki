@@ -82,8 +82,8 @@ class TenkiCreateConfig:
     image: str | None = None  # a Tenki registry ref; None -> platform default base image
     ready_timeout_s: float = 180.0
     allow_outbound: bool = True  # agents that pip install / git clone need egress; set False to lock a rollout down
-    idle_timeout_minutes: int | None = None
-    max_duration_s: float | None = None  # hard VM lifetime; None -> platform default
+    idle_timeout_minutes: int | None = None  # ignored by the tenki 1.x SDK (sandboxes don't pause on idle)
+    max_duration_s: float | None = None  # hard VM lifetime; None -> no cap, so set it or spec.ttl_s
     sticky: bool = False
 
     def __post_init__(self) -> None:
@@ -313,7 +313,7 @@ class TenkiProvider:
         def _close() -> None:
             try:
                 sandbox.close()  # terminates the microVM
-            except Exception:  # noqa: BLE001 - already gone / self-reaps via lifetime caps
+            except Exception:  # noqa: BLE001 - already gone; a failed close leaves the VM until max_duration
                 pass
 
         await asyncio.to_thread(_close)

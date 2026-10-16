@@ -2,7 +2,7 @@
 
 A [Tenki](https://tenki.cloud) sandbox provider for [NVIDIA NeMo Gym](https://github.com/NVIDIA-NeMo/Gym).
 
-Runs each NeMo Gym sandbox in a **Tenki Firecracker microVM**: it boots in seconds, is kernel-isolated, and is thrown away when the rollout ends. It sits alongside NeMo Gym's built-in providers (`docker`, `opensandbox`, `daytona`, `apptainer`, `enroot`, `ecs_fargate`, `openshell`) as a hosted-cloud option, and is a strong fit for **RL rollout collection**, where you fan out many short-lived sandboxes to run an agent's generated code for verifiable rewards (coding, math, tool-use).
+Runs each NeMo Gym sandbox in a **Tenki Firecracker microVM**: it boots in seconds, is kernel-isolated, and is thrown away when the rollout ends. It sits alongside NeMo Gym 0.7.0's built-in providers (`apptainer`, `daytona`, `docker`, `e2b`, `ecs_fargate`, `enroot`, `local`, `opensandbox`, `openshell`) as a hosted-cloud option, and is a strong fit for **RL rollout collection**, where you fan out many short-lived sandboxes to run an agent's generated code for verifiable rewards (coding, math, tool-use).
 
 ## Install
 
@@ -47,8 +47,11 @@ await provider.aclose()
 The provider constructs a Tenki SDK `Client` (the `tenki` package, imported as `tenki_sandbox`). Auth resolves in order:
 
 1. `connection.auth_token` in the config, else
-2. `TENKI_API_KEY` / `TENKI_AUTH_TOKEN` in the environment (a **`tk_` API key** is preferred), else
-3. whatever `tenki login` wrote to `~/.config/tenki/config.yaml`.
+2. `TENKI_API_KEY` / `TENKI_AUTH_TOKEN` in the environment. The SDK accepts only **`tk_` API keys**.
+
+The SDK doesn't read the file `tenki login` writes. (`verify.py` reads `auth_token` from `~/.config/tenki/config.yaml` itself and passes it in, as a convenience.)
+
+**Set a lifetime cap.** `create.max_duration_s`, or a spec's `ttl_s`, becomes the VM's hard `max_duration`. With neither set there is no cap, so a rollout whose `close()` never runs leaves its VM running.
 
 `connection.workspace_id` is **optional**: omit it and the SDK uses the workspace your key belongs to, which is why this works in CI with only a key set.
 
